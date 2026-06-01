@@ -20,8 +20,8 @@ the hardware doesn't support.
 **Easiest:** download [`pixelblaze-pattern-coder.skill`](pixelblaze-pattern-coder.skill) and
 add it in a Claude environment that supports skills.
 
-**From source:** clone this repo and copy the folder into your skills directory (keep the
-folder name `pixelblaze-pattern-coder`).
+**From source:** the repo root *is* the skill — clone it and copy the contents into a
+folder named `pixelblaze-pattern-coder` in your skills directory.
 
 ## Highlights
 
