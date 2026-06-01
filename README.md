@@ -29,6 +29,11 @@ folder named `pixelblaze-pattern-coder` in your skills directory.
   Auto Cycle / Random Palette / Palette # controls.
 - Power-safety guidance so patterns don't brown out larger LED runs.
 - Every built-in used is checked against the language reference — no invented functions.
+- **Gated sound-reactive support:** a `reference/sound.md` playbook (spectrum
+  auto-gain, bass-beat detection, tempo inference, sim-sound fallback) plus a
+  beat-pulse example — loaded only when you actually ask for an audio-reactive
+  pattern, so it never bloats other work. Techniques credited to wizard (Ben
+  Hencke), Jeff Vyduna, and MyMathematicalMind.
 
 ## License
 

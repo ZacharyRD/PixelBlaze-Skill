@@ -85,7 +85,10 @@ user gave enough:
 - **Layout:** strip / ring / matrix / cube / sphere / custom? How many pixels?
   For a matrix: dimensions and wiring (zigzag/serpentine vs. row-by-row)?
 - **Vibe:** mood, palette, energy (calm vs. energetic), any reference imagery.
-- **Sound-reactive?** Requires the sensor expansion board (see `reference/language.md`).
+- **Sound-reactive?** Requires the sensor expansion board. **If — and only if —
+  the user wants audio / beat / spectrum / tempo reactivity, read
+  `reference/sound.md` and the gated sound examples below.** Don't load them
+  otherwise — they stay out of context for non-sound work.
 - **Hardware:** assume PixelBlaze V3 + current firmware unless told otherwise.
 
 ## Self-verification checklist (run every time before output)
@@ -136,8 +139,16 @@ real path to a working, beautiful pattern.
 - `reference/integrations.md` — optional: syncing multiple devices (Firestorm),
   the WebSocket API, and the pixelblaze-client Python library. Only for
   multi-device or programmatic control.
+- `reference/sound.md` — **GATED. Read only when the user explicitly asks for a
+  sound- / audio- / beat- / spectrum- / tempo-reactive pattern.** Covers the
+  sensor board inputs, frequency-spectrum auto-gain, per-bin running averages,
+  bass-beat detection, tempo inference, a simulated-sound fallback, and
+  multi-dimensional dispatch. Techniques are attributed to wizard (Ben Hencke),
+  Jeff Vyduna, and MyMathematicalMind — keep the attributions when reused. Its
+  two companion examples (`examples/2d-sound-spectrum.js`,
+  `examples/2d-sound-beat-pulse.js`) are gated the same way: don't load them
+  for non-sound requests.
 - `examples/` — complete, verified patterns: 1D breathing rainbow, 1D palette
   comet, 2D Perlin plasma, 2D ring aurora, 2D palette crossfade (signature
   effect), 2D ember flicker (hardware-tested; correct slow-Perlin drift + warm
-  crossfade), 3D noise cube, and a sound spectrum with auto-gain. Use as
-  templates and few-shot references.
+  crossfade), and 3D noise cube. Use as templates and few-shot references.

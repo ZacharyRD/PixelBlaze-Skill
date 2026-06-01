@@ -5,6 +5,69 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Entries record n
 just *what* changed but *what we learned* — for fixes, the root cause and the
 guardrail added so it can't recur.
 
+## [1.1.0] - 2026-06-01
+
+Added a gated sound-reactive reference and a beat-reactive example. Both are
+kept **out of context unless the user explicitly asks for a sound- / audio- /
+beat- / spectrum- / tempo-reactive pattern**, so non-sound work doesn't pay the
+token cost.
+
+### Added
+- `reference/sound.md` — sound-reactive playbook: sensor inputs and board
+  detection (`light == -1`), single-renderer dimension dispatch, frequency-
+  spectrum auto-gain (simple decaying-peak and wizard's PI controller), per-bin
+  "compared to its own average" EMA reactivity, bass-beat detection
+  (fast/slow EMA rising edge + debounce), tempo / BPM inference, a simulated-
+  sound fallback, and sound-specific gotchas. Opens with a "scope discipline"
+  rule: default to the smallest engine that satisfies the ask.
+- `examples/2d-sound-beat-pulse.js` — a complete, verified beat-reactive pattern.
+  Blooms from center and steps through a warm palette on each detected bass beat,
+  then decays to a brightness floor with a slow shimmer (a pulse, not a strobe).
+  Runs on a bare strip via a 120-BPM simulated groove when no sensor board is
+  attached; one renderer body serves 1D/2D/3D. Two UI knobs (Beat Sensitivity,
+  Brightness) plus a Pulse gauge.
+
+### Changed
+- `SKILL.md` — `reference/sound.md` and both sound examples
+  (`2d-sound-spectrum.js`, `2d-sound-beat-pulse.js`) are now explicitly **gated**:
+  read only on an explicit sound-reactive request. The default `examples/`
+  description no longer lists the sound spectrum, and the "Sound-reactive?"
+  question now routes to `sound.md`.
+
+### Sources & attribution (sound-reactive material)
+Techniques are distilled from four community patterns; attributions are preserved
+in `sound.md`, the example header, and here:
+- **wizard (Ben Hencke)** — PixelBlaze core/firmware author, the definitive idiom.
+  "sound — spectroblots 1D/2D/3D"
+  (https://patterns.electromage.com/pattern/vXGvYT7tqJCsCKfiD) and
+  "sound — spectrokalidamandala"
+  (https://patterns.electromage.com/pattern/FRobn9vAtgoAqNCBo): PI-controller
+  auto-gain, per-bin running averages, `arrayLerp` bin smoothing, `doAt`
+  fixed-rate updates, and the simulated-sound fallback.
+- **Jeff Vyduna** — "Music Sequencer — for V3 ONLY"
+  (https://patterns.electromage.com/pattern/7MuJmcy4FZbs9jGbB ;
+  https://forum.electromage.com/t/music-sequencer-choreography/1549): beat
+  detection, std-dev-gated BPM estimation, and the ramp-timer / command-queue
+  choreography model. Noted as ~1,400 lines and crash-prone if pasted whole —
+  referenced for sections only, never reproduced in full.
+- **MyMathematicalMind** — "Sound Reactive Color Fade", 2023
+  (https://patterns.electromage.com/pattern/QhsaiD6Kbq2LnZ54p): the compact,
+  stripped-down beat-detection skeleton the new example is built on.
+
+### Lessons baked in
+- **Scope is a feature.** The Music Sequencer proves that "more sound code" isn't
+  better — it can crash the device and is slow to compile. The reference leads
+  with scope discipline and the example stays ~150 lines.
+- **Detect the board; simulate when absent.** Gate analysis on `light != -1` and
+  drive a simulator otherwise, so patterns animate (and stay tunable) with no
+  hardware.
+- **Auto-gain, not magic constants.** Raw `frequencyData` is tiny and room-
+  dependent; normalize against a decaying peak or a PI controller.
+- **Delta-normalize every decay/EMA** (carrying the project-wide frame-rate rule
+  into audio): `pow(ratePerSec, delta/1000)` or a `delta/windowMs` weight.
+- **Array-method callbacks can't close over caller locals** — declare temporaries
+  as `var` inside the callback.
+
 ## [1.0.0] - 2026-06-01
 
 Initial public release. The skill writes, debugs, and explains PixelBlaze V3
