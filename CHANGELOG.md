@@ -5,6 +5,104 @@ Format follows [Keep a Changelog](https://keepachangelog.com/). Entries record n
 just *what* changed but *what we learned* — for fixes, the root cause and the
 guardrail added so it can't recur.
 
+## [1.2.0] - 2026-06-01
+
+Added a gated motion-reactive reference and two motion examples. Like the sound
+material, they stay **out of context unless the user explicitly asks for a motion-
+/ tilt- / gravity- / orientation- / shake- / gyro- / 6-axis-reactive pattern**, so
+non-motion work doesn't pay the token cost.
+
+### Added
+- `reference/accelerometer.md` — motion-reactive playbook. Leads with the
+  distinction that matters most: the **Sensor Expansion Board** exposes
+  `accelerometer` `[x,y,z]` (LIS3DH, linear acceleration only — no gyro), while the
+  **PixelBlaze V3 Pico** has a built-in 6-axis IMU exposed as `sixAxis`
+  `[x,y,z,gx,gy,gz]` whose indices 3–5 are angular velocity (real rotation). Covers
+  snapshot-once + IIR/damped smoothing, the normalized gravity vector → tilt
+  angles (and Roger's azimuth/polar sloshing model), motion/shake magnitude, the
+  Pico gyro for true spin sensing, and kwitter's resting-offset + sensitivity
+  calibration workflow. **Leads with the default approach — "One pattern, both
+  sensors":** a `readMotion()` helper declares both variables, auto-detects which
+  is live by magnitude (preferring `sixAxis`, since it adds the gyro), and falls
+  back to a `time()` simulator when neither is present, so one portable pattern
+  runs on any hardware. Opens with a scope-discipline ladder.
+- `examples/3d-motion-gravity-liquid.js` — a cool water palette fills like liquid
+  that settles to the gravity low side, with a foam-bright surface band,
+  shake-driven slosh (plus gyro-spin agitation on a Pico), and a brightness floor.
+  Uses a dot-product "height along gravity" instead of per-pixel matrix math.
+  Auto-detects the sensor (`readMotion()`); one renderer body serves 3D/2D/1D;
+  self-sloshes on a timer when no sensor is attached.
+- `examples/2d-motion-tilt-ball.js` — a soft glowing ball rolls downhill with tilt
+  and, on a Pico, blooms/shifts color with spin (`sixAxis[3..5]` gyro, which
+  degrades to nothing on the expansion board). Auto-detects the sensor and
+  demonstrates kwitter's calibration (resting offsets, sign flips, sensitivity).
+  Drifts on a timer when no sensor reports.
+
+### Changed
+- `SKILL.md` — added a gated "Motion-reactive?" question that routes to
+  `reference/accelerometer.md` (and prompts asking which board the user has), and a
+  gated entry for the reference + its two examples in the Reference files list.
+- `reference/language.md` — sensor section now documents `sixAxis` (Pico built-in
+  6-axis IMU) alongside `accelerometer`, flags `accelerometer` as accel-only
+  (reads ~1g at rest, no gyro), and marks `sixAxis` as community-documented
+  (confirm live in the Var Watcher).
+
+### Sources & attribution (motion-reactive material)
+Techniques are distilled from community work; attributions are preserved in
+`accelerometer.md`, the example headers, and here:
+- **Roger Cheng (Regorlas / Roger-random)** — "GlowFlow (3D coord transform API
+  port)", "Accelerometer Tilt 3D", and "RGB-XYZ Accelerometer Blocks 3D"
+  (https://github.com/Roger-random/glowflow): the gravity-vector → spherical
+  (azimuth/polar) tilt model and the jitter-damping idiom. Axis-direction
+  investigation: https://newscrewdriver.com/2019/07/08/pixelblaze-accelerometer-axis/.
+- **kwitter** — Pico 6-axis write-up
+  (https://forum.electromage.com/t/how-to-use-the-pico-s-six-axis-sensor/4692): the
+  `sixAxis` variable, the IIR low-pass filter, and the resting-offset + per-axis
+  sensitivity calibration workflow.
+- **wizard (Ben Hencke)** — sensor-board author; guidance on what the accelerometer
+  can/can't sense (tilt easy; spin-in-place near-invisible unless off-axis).
+- **sorceror** — angle-between-two-vectors formula
+  (https://forum.electromage.com/t/example-patterns-using-3-axis-accelerometer/2378).
+
+### Lessons baked in
+- **Two sensors, two variables — so auto-detect both by default.** `accelerometer`
+  (expansion board) and `sixAxis` (Pico) are different variables; the one your
+  hardware lacks is never populated, so a pattern on the wrong variable sits dead.
+  The reference and both examples now lead with a `readMotion()` helper that
+  declares both, picks the live one by magnitude (preferring `sixAxis`), and
+  simulates from `time()` when neither reports — one portable pattern per layout.
+- **Latch the source; don't re-decide per frame.** Re-selecting the sensor every
+  frame flips to the `time()` simulator on any transient sub-threshold reading
+  (freefall, hard shake) and glitches. `readMotion()` now latches onto the first
+  sensor seen and releases only after a run of ~0 frames — the one spot motion
+  intentionally diverges from the sound playbook's per-frame `light == -1` test
+  (explained in the code comments).
+- **`sixAxis` units are unverified — test before first use.** Detection threshold,
+  the `abs(mag-1)` shake term, and gyro scaling all assume `sixAxis` matches the
+  LIS3DH's ~1g scale, which isn't vendor-confirmed. Both examples carry a
+  "TEST BEFORE FIRST USE" header (coexistence, units/scale, axis signs) and the
+  reference has the matching callout; tilt direction survives a scale mismatch,
+  magnitude does not.
+- **Axis signs are per-sensor.** Two different chips, mounted differently, can't
+  share one sign convention; `boardSign*` / `picoSign*` are now separate and
+  applied inside `readMotion()`.
+- **Fill patterns are a power case.** The gravity-liquid foam is a saturated cyan
+  (not white) and per-pixel value is capped (`powerCeiling`), with default
+  brightness lowered — so a filled, lit volume can't approach all-white. Documented
+  as a motion-specific gotcha pointing at `power-safety.md`.
+- **At rest ≠ zero.** The accelerometer reads 1g of gravity at rest; "no motion" is
+  magnitude ≈ 1, and magnitude ≈ 0 means no board (or freefall) — which doubles as
+  the detection test.
+- **Always smooth, and snapshot once.** Raw motion data jitters; an IIR low-pass or
+  damped average is mandatory, and the array must be read into locals once per frame
+  with all vector/trig math in `beforeRender` (matrices precomputed there, never in
+  `render*`).
+- **Only the gyro senses spin.** The expansion-board accelerometer can't detect
+  rotation in place — a recurring community misconception. True turn/spin needs the
+  Pico's `sixAxis[3..5]`.
+- **Carry the project-wide rules in:** delta-normalized decay, brightness floor /
+  no strobe, no per-frame allocation, palette-based color.
+
 ## [1.1.0] - 2026-06-01
 
 Added a gated sound-reactive reference and a beat-reactive example. Both are

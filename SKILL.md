@@ -89,6 +89,14 @@ user gave enough:
   the user wants audio / beat / spectrum / tempo reactivity, read
   `reference/sound.md` and the gated sound examples below.** Don't load them
   otherwise — they stay out of context for non-sound work.
+- **Motion-reactive?** Tilt / gravity / orientation / shake reactivity needs the
+  sensor expansion board (`accelerometer`); turn / spin (gyro) reactivity needs
+  the PixelBlaze V3 Pico's built-in sensor (`sixAxis`). **If — and only if — the
+  user wants a motion- / tilt- / gravity- / shake- / gyro- / 6-axis-reactive
+  pattern, read `reference/accelerometer.md` and the gated motion examples
+  below.** By default write one pattern that supports both boards and auto-detects
+  which is present (the reference shows the read); only target a single sensor if
+  the user asks. Don't load them otherwise.
 - **Hardware:** assume PixelBlaze V3 + current firmware unless told otherwise.
 
 ## Self-verification checklist (run every time before output)
@@ -148,6 +156,19 @@ real path to a working, beautiful pattern.
   two companion examples (`examples/2d-sound-spectrum.js`,
   `examples/2d-sound-beat-pulse.js`) are gated the same way: don't load them
   for non-sound requests.
+- `reference/accelerometer.md` — **GATED. Read only when the user explicitly asks
+  for a motion- / tilt- / gravity- / orientation- / shake- / gyro- / 6-axis-
+  reactive pattern.** Distinguishes the two sensors (expansion-board
+  `accelerometer` `[x,y,z]`, accel-only; Pico built-in `sixAxis` `[x,y,z,gx,gy,gz]`
+  with a real gyro), then covers snapshot-and-smooth, normalized gravity → tilt
+  angles, motion/shake magnitude, the Pico gyro for true rotation, board
+  detection + bare-strip fallback, and kwitter's calibration workflow. Leads with
+  the default approach: one pattern reads both sensors and auto-detects which is
+  present (`readMotion()`). Techniques are attributed to Roger Cheng (Regorlas),
+  kwitter, wizard (Ben Hencke), and sorceror — keep the attributions when reused.
+  Its two companion examples (`examples/3d-motion-gravity-liquid.js`,
+  `examples/2d-motion-tilt-ball.js`) are gated the same way: don't load them for
+  non-motion requests.
 - `examples/` — complete, verified patterns: 1D breathing rainbow, 1D palette
   comet, 2D Perlin plasma, 2D ring aurora, 2D palette crossfade (signature
   effect), 2D ember flicker (hardware-tested; correct slow-Perlin drift + warm

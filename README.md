@@ -34,6 +34,13 @@ folder named `pixelblaze-pattern-coder` in your skills directory.
   beat-pulse example — loaded only when you actually ask for an audio-reactive
   pattern, so it never bloats other work. Techniques credited to wizard (Ben
   Hencke), Jeff Vyduna, and MyMathematicalMind.
+- **Gated motion-reactive support:** a `reference/accelerometer.md` playbook
+  covering both the Sensor Expansion Board's `accelerometer` (tilt / gravity /
+  shake) and the V3 Pico's built-in `sixAxis` 6-axis IMU (adds a real gyro for
+  spin), plus gravity-liquid and tilt-ball examples that **auto-detect which sensor
+  is present** so one pattern runs on either board — loaded only when you ask for a
+  motion-reactive pattern. Techniques credited to Roger Cheng (Regorlas), kwitter,
+  wizard (Ben Hencke), and sorceror.
 
 ## License
 

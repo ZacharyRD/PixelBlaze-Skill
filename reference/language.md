@@ -143,9 +143,17 @@ patterns that index these **require the board** to do anything):
 - `frequencyData` — 32-element FFT magnitudes (12.5Hz–10kHz).
 - `energyAverage` — overall volume.
 - `maxFrequency`, `maxFrequencyMagnitude` — strongest tone (~39Hz resolution).
-- `accelerometer` — `[x, y, z]`, 16G.
-- `light` — ambient light (good for auto-dimming).
+- `accelerometer` — `[x, y, z]`, 16G (LIS3DH). Linear acceleration only — reads
+  ~1g of gravity at rest, no gyroscope.
+- `light` — ambient light (good for auto-dimming; sits at `-1` until a board reports).
 - `analogInputs` — `[A0..A4]`.
+
+The **PixelBlaze V3 Pico** has a built-in 6-axis IMU exposed as `sixAxis` —
+`[x, y, z, gx, gy, gz]`: indices 0–2 are orientation/acceleration (gravity/tilt),
+3–5 are angular velocity (gyroscope → true rotation, which `accelerometer` can't
+sense). **Community-documented (kwitter), not in the official vendor reference** —
+confirm live values/signs in the Var Watcher. For motion-reactive work see the
+gated `reference/accelerometer.md`.
 
 ## Sequencer / sync
 
